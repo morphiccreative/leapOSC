@@ -6,4 +6,4 @@ Based upon Sample.cpp from Leap SDK, with oscpack integrated to facilitate sendi
 
 Working executable and supporting files can be found in /bin.
 
-Requires the Leap Motion Developer Kit v0.7 to be installed and the LeapApp running.
+Requires the Leap Motion Developer Kit v0.7.3 to be installed and the LeapApp running.
