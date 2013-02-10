@@ -1,7 +1,7 @@
 leapOSC - OSC Channel Assignment
 
 
-		<< frame.id()										//Controller:1
+		<< frame.id()									//Controller:1
 		<< frame.timestamp()								//Controller:2
 		<< frame.hands().count()							//Controller:3
 		<< frame.fingers().count()							//Controller:4
@@ -11,12 +11,12 @@ leapOSC - OSC Channel Assignment
 		<< firsthand.direction().y							//FirstHand:3
 		<< firsthand.direction().z							//FirstHand:4
 		<< firsthand.sphereRadius()							//FirstHand:5
-		<< firstdirection.pitch() * RAD_TO_DEG				//FirstHand:6
-		<< firstdirection.roll() * RAD_TO_DEG				//FirstHand:7
-		<< firstdirection.yaw() * RAD_TO_DEG				//FirstHand:8
-		<< firsthand.palmPosition().x						//FirstHand:9
-		<< firsthand.palmPosition().y						//FirstHand:10
-		<< firsthand.palmPosition().z						//FirstHand:11
+		<< firstdirection.pitch() * RAD_TO_DEG						//FirstHand:6
+		<< firstdirection.roll() * RAD_TO_DEG						//FirstHand:7
+		<< firstdirection.yaw() * RAD_TO_DEG						//FirstHand:8
+		<< firsthand.palmPosition().x							//FirstHand:9
+		<< firsthand.palmPosition().y							//FirstHand:10
+		<< firsthand.palmPosition().z							//FirstHand:11
 		<< firsthand.palmPosition().pitch() * RAD_TO_DEG	//FirstHand:12
 		<< firsthand.palmPosition().roll() * RAD_TO_DEG		//FirstHand:13
 		<< firsthand.palmPosition().yaw() * RAD_TO_DEG		//FirstHand:14
