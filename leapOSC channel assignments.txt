@@ -17,15 +17,15 @@ leapOSC - OSC Channel Assignment
 		<< firsthand.palmPosition().x							//FirstHand:9
 		<< firsthand.palmPosition().y							//FirstHand:10
 		<< firsthand.palmPosition().z							//FirstHand:11
-		<< firsthand.palmPosition().pitch() * RAD_TO_DEG	//FirstHand:12
-		<< firsthand.palmPosition().roll() * RAD_TO_DEG		//FirstHand:13
-		<< firsthand.palmPosition().yaw() * RAD_TO_DEG		//FirstHand:14
-		<< firsthand.palmVelocity().x						//FirstHand:15
-		<< firsthand.palmVelocity().y						//FirstHand:16
-		<< firsthand.palmVelocity().z						//FirstHand:17
-		<< firsthand.palmVelocity().pitch() * RAD_TO_DEG	//FirstHand:18
-		<< firsthand.palmVelocity().roll() * RAD_TO_DEG		//FirstHand:19
-		<< firsthand.palmVelocity().yaw() * RAD_TO_DEG		//FirstHand:20
+		<< firsthand.palmPosition().pitch() * RAD_TO_DEG				//FirstHand:12
+		<< firsthand.palmPosition().roll() * RAD_TO_DEG					//FirstHand:13
+		<< firsthand.palmPosition().yaw() * RAD_TO_DEG					//FirstHand:14
+		<< firsthand.palmVelocity().x							//FirstHand:15
+		<< firsthand.palmVelocity().y							//FirstHand:16
+		<< firsthand.palmVelocity().z							//FirstHand:17
+		<< firsthand.palmVelocity().pitch() * RAD_TO_DEG			//FirstHand:18
+		<< firsthand.palmVelocity().roll() * RAD_TO_DEG				//FirstHand:19
+		<< firsthand.palmVelocity().yaw() * RAD_TO_DEG				//FirstHand:20
 		<< firsthand.palmNormal().x							//FirstHand:21
 		<< firsthand.palmNormal().y							//FirstHand:22
 		<< firsthand.palmNormal().z							//FirstHand:23
