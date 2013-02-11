@@ -1,105 +1,10 @@
-// leapOSC v0.2 by Morphic Creative
-
-//Includes and namespace for Leap
-#include <iostream>
-#include "Leap.h"
-using namespace Leap;
-
-// Includes and defines for oscpack
-#include "include/OscOutboundPacketStream.h"
-#include "include/UdpSocket.h"
-#define ADDRESS "127.0.0.1"
-#define PORT 7000
-#define OUTPUT_BUFFER_SIZE 2048
-using namespace std;
-
-class SampleListener : public Listener {
-  public:
-    virtual void onInit(const Controller&);
-    virtual void onConnect(const Controller&);
-    virtual void onDisconnect(const Controller&);
-    virtual void onExit(const Controller&);
-    virtual void onFrame(const Controller&);
-};
-
-void SampleListener::onInit(const Controller& controller) {
-  std::cout << "Device Initialized" << std::endl;
-}
-
-void SampleListener::onConnect(const Controller& controller) {
-  std::cout << "Device Connected" << std::endl;
-}
-
-void SampleListener::onDisconnect(const Controller& controller) {
-  std::cout << "Device Disconnected" << std::endl;
-}
-
-void SampleListener::onExit(const Controller& controller) {
-  std::cout << "Exited" << std::endl;
-}
-
-void SampleListener::onFrame(const Controller& controller) {
-
-  // Get the most recent frame
-  const Frame frame = controller.frame();
-
-  // Get the hands
-  const Hand handone = frame.hands()[0];
-  const Hand handtwo = frame.hands()[1];
-  const Hand handthree = frame.hands()[2];
-  const Hand handfour = frame.hands()[3];
-
-  // Get the fingers
-  const FingerList handonefingers = handone.fingers();
-  const FingerList handtwofingers = handtwo.fingers();
-  const FingerList handthreefingers = handthree.fingers();
-  const FingerList handfourfingers = handfour.fingers();
-
-  // Calculate average finger tip positions
-      Vector handonefingersavgPos;
-      for (int i = 0; i < handonefingers.count(); ++i) {
-        handonefingersavgPos += handonefingers[i].tipPosition();
-      }
-      handonefingersavgPos /= (float)handonefingers.count();
-      Vector handtwofingersavgPos;
-      for (int i = 0; i < handtwofingers.count(); ++i) {
-        handtwofingersavgPos += handtwofingers[i].tipPosition();
-      }
-      handtwofingersavgPos /= (float)handtwofingers.count();
-      Vector handthreefingersavgPos;
-      for (int i = 0; i < handthreefingers.count(); ++i) {
-        handthreefingersavgPos += handthreefingers[i].tipPosition();
-      }
-      handthreefingersavgPos /= (float)handthreefingers.count();
-      Vector handfourfingersavgPos;
-      for (int i = 0; i < handfourfingers.count(); ++i) {
-        handfourfingersavgPos += handfourfingers[i].tipPosition();
-      }
-      handfourfingersavgPos /= (float)handfourfingers.count();
-
-  // Get the hands normal vectors and directions
-  const Vector handonenormalvector = handone.palmNormal();
-  const Vector handonedirection = handone.direction();
-  const Vector handtwonormalvector = handtwo.palmNormal();
-  const Vector handtwodirection = handtwo.direction();
-  const Vector handthreenormalvector = handthree.palmNormal();
-  const Vector handthreedirection = handthree.direction();
-  const Vector handfournormalvector = handfour.palmNormal();
-  const Vector handfourdirection = handfour.direction();
-
-  // Output Leap data via OSC
-    UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
-    char buffer[OUTPUT_BUFFER_SIZE];
-    osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
-    p << osc::BeginBundleImmediate
-        << osc::BeginMessage( "/FrameInfo:" )
+leapOSC - OSC Channel Names and Assignments
 		<< frame.id()									//FrameInfo:1
 		<< frame.timestamp()							//FrameInfo:2
 		<< frame.hands().count()						//FrameInfo:3
 		<< frame.fingers().count()						//FrameInfo:4
 		<< frame.tools().count()						//FrameInfo:5
-		<< osc::EndMessage
-        << osc::BeginMessage( "/HandOne:" )
+
 		<< handonefingers.count()						//HandOne:1
 		<< handone.palmPosition().x						//HandOne:2 (mm)
 		<< handone.palmPosition().y						//HandOne:3 (mm)
@@ -175,8 +80,7 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handonefingers[4].tipVelocity().x			//HandOne:73 (mm/s)
 		<< handonefingers[4].tipVelocity().y			//HandOne:74 (mm/s)
 		<< handonefingers[4].tipVelocity().z			//HandOne:75 (mm/s)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/HandTwo:" )
+
 		<< handtwofingers.count()						//HandTwo:1
 		<< handtwo.palmPosition().x						//HandTwo:2 (mm)
 		<< handtwo.palmPosition().y						//HandTwo:3 (mm)
@@ -252,9 +156,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handtwofingers[4].tipVelocity().x			//HandTwo:73 (mm/s)
 		<< handtwofingers[4].tipVelocity().y			//HandTwo:74 (mm/s)
 		<< handtwofingers[4].tipVelocity().z			//HandTwo:75 (mm/s)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/HandThree:" )
-		<< handthreefingers.count()						//HandThree:1
+
+		<< handthreefingers.count()							//HandThree:1
 		<< handthree.palmPosition().x						//HandThree:2 (mm)
 		<< handthree.palmPosition().y						//HandThree:3 (mm)
 		<< handthree.palmPosition().z						//HandThree:4 (mm)
@@ -263,8 +166,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handthree.palmVelocity().z						//HandThree:7 (mm/s)
 		<< handthreenormalvector.pitch() * RAD_TO_DEG		//HandThree:8 (deg)
 		<< handthreenormalvector.roll() * RAD_TO_DEG		//HandThree:9 (deg)
-		<< handthreenormalvector.yaw() * RAD_TO_DEG		//HandThree:10 (deg)
-		<< handthreedirection.pitch() * RAD_TO_DEG		//HandThree:11 (deg)
+		<< handthreenormalvector.yaw() * RAD_TO_DEG			//HandThree:10 (deg)
+		<< handthreedirection.pitch() * RAD_TO_DEG			//HandThree:11 (deg)
 		<< handthreedirection.roll() * RAD_TO_DEG			//HandThree:12 (deg)
 		<< handthreedirection.yaw() * RAD_TO_DEG			//HandThree:13 (deg)
 		<< handthree.sphereCenter().x						//HandThree:14 (mm)
@@ -321,16 +224,15 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handthreefingers[4].length()					//HandThree:65 (mm)
 		<< handthreefingers[4].width()					//HandThree:66 (mm)
 		<< handthreefingers[4].direction().pitch() * RAD_TO_DEG		//HandThree:67 (deg)
-		<< handthreefingers[4].direction().roll()	* RAD_TO_DEG		//HandThree:68 (deg)
-		<< handthreefingers[4].direction().yaw() * RAD_TO_DEG			//HandThree:69 (deg)
+		<< handthreefingers[4].direction().roll()	* RAD_TO_DEG	//HandThree:68 (deg)
+		<< handthreefingers[4].direction().yaw() * RAD_TO_DEG		//HandThree:69 (deg)
 		<< handthreefingers[4].tipPosition().x			//HandThree:70 (mm)
 		<< handthreefingers[4].tipPosition().y			//HandThree:71 (mm)
 		<< handthreefingers[4].tipPosition().z			//HandThree:72 (mm)
 		<< handthreefingers[4].tipVelocity().x			//HandThree:73 (mm/s)
 		<< handthreefingers[4].tipVelocity().y			//HandThree:74 (mm/s)
 		<< handthreefingers[4].tipVelocity().z			//HandThree:75 (mm/s)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/HandFour:" )
+
 		<< handfourfingers.count()						//HandFour:1
 		<< handfour.palmPosition().x						//HandFour:2 (mm)
 		<< handfour.palmPosition().y						//HandFour:3 (mm)
@@ -342,7 +244,7 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfournormalvector.roll() * RAD_TO_DEG		//HandFour:9 (deg)
 		<< handfournormalvector.yaw() * RAD_TO_DEG		//HandFour:10 (deg)
 		<< handfourdirection.pitch() * RAD_TO_DEG		//HandFour:11 (deg)
-		<< handfourdirection.roll() * RAD_TO_DEG			//HandFour:12 (deg)
+		<< handfourdirection.roll() * RAD_TO_DEG		//HandFour:12 (deg)
 		<< handfourdirection.yaw() * RAD_TO_DEG			//HandFour:13 (deg)
 		<< handfour.sphereCenter().x						//HandFour:14 (mm)
 		<< handfour.sphereCenter().y						//HandFour:15 (mm)
@@ -354,8 +256,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfourfingers[0].length()					//HandFour:21 (mm)
 		<< handfourfingers[0].width()					//HandFour:22 (mm)
 		<< handfourfingers[0].direction().pitch() * RAD_TO_DEG		//HandFour:23 (deg)
-		<< handfourfingers[0].direction().roll()	* RAD_TO_DEG		//HandFour:24 (deg)
-		<< handfourfingers[0].direction().yaw() * RAD_TO_DEG			//HandFour:25 (deg)
+		<< handfourfingers[0].direction().roll()	* RAD_TO_DEG	//HandFour:24 (deg)
+		<< handfourfingers[0].direction().yaw() * RAD_TO_DEG		//HandFour:25 (deg)
 		<< handfourfingers[0].tipPosition().x			//HandFour:26 (mm)
 		<< handfourfingers[0].tipPosition().y			//HandFour:27 (mm)
 		<< handfourfingers[0].tipPosition().z			//HandFour:28 (mm)
@@ -365,8 +267,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfourfingers[1].length()					//HandFour:32 (mm)
 		<< handfourfingers[1].width()					//HandFour:33 (mm)
 		<< handfourfingers[1].direction().pitch() * RAD_TO_DEG		//HandFour:34 (deg)
-		<< handfourfingers[1].direction().roll()	* RAD_TO_DEG		//HandFour:35 (deg)
-		<< handfourfingers[1].direction().yaw() * RAD_TO_DEG			//HandFour:36 (deg)
+		<< handfourfingers[1].direction().roll()	* RAD_TO_DEG	//HandFour:35 (deg)
+		<< handfourfingers[1].direction().yaw() * RAD_TO_DEG		//HandFour:36 (deg)
 		<< handfourfingers[1].tipPosition().x			//HandFour:37 (mm)
 		<< handfourfingers[1].tipPosition().y			//HandFour:38 (mm)
 		<< handfourfingers[1].tipPosition().z			//HandFour:39 (mm)
@@ -376,8 +278,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfourfingers[2].length()					//HandFour:43 (mm)
 		<< handfourfingers[2].width()					//HandFour:44 (mm)
 		<< handfourfingers[2].direction().pitch() * RAD_TO_DEG		//HandFour:45 (deg)
-		<< handfourfingers[2].direction().roll()	* RAD_TO_DEG		//HandFour:46 (deg)
-		<< handfourfingers[2].direction().yaw() * RAD_TO_DEG			//HandFour:47 (deg)
+		<< handfourfingers[2].direction().roll()	* RAD_TO_DEG	//HandFour:46 (deg)
+		<< handfourfingers[2].direction().yaw() * RAD_TO_DEG		//HandFour:47 (deg)
 		<< handfourfingers[2].tipPosition().x			//HandFour:48 (mm)
 		<< handfourfingers[2].tipPosition().y			//HandFour:49 (mm)
 		<< handfourfingers[2].tipPosition().z			//HandFour:50 (mm)
@@ -387,8 +289,8 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfourfingers[3].length()					//HandFour:54 (mm)
 		<< handfourfingers[3].width()					//HandFour:55 (mm)
 		<< handfourfingers[3].direction().pitch() * RAD_TO_DEG		//HandFour:56 (deg)
-		<< handfourfingers[3].direction().roll()	* RAD_TO_DEG		//HandFour:57 (deg)
-		<< handfourfingers[3].direction().yaw() * RAD_TO_DEG			//HandFour:58 (deg)
+		<< handfourfingers[3].direction().roll()	* RAD_TO_DEG	//HandFour:57 (deg)
+		<< handfourfingers[3].direction().yaw() * RAD_TO_DEG		//HandFour:58 (deg)
 		<< handfourfingers[3].tipPosition().x			//HandFour:59 (mm)
 		<< handfourfingers[3].tipPosition().y			//HandFour:60 (mm)
 		<< handfourfingers[3].tipPosition().z			//HandFour:61 (mm)
@@ -398,41 +300,11 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< handfourfingers[4].length()					//HandFour:65 (mm)
 		<< handfourfingers[4].width()					//HandFour:66 (mm)
 		<< handfourfingers[4].direction().pitch() * RAD_TO_DEG		//HandFour:67 (deg)
-		<< handfourfingers[4].direction().roll()	* RAD_TO_DEG		//HandFour:68 (deg)
-		<< handfourfingers[4].direction().yaw() * RAD_TO_DEG			//HandFour:69 (deg)
+		<< handfourfingers[4].direction().roll()	* RAD_TO_DEG	//HandFour:68 (deg)
+		<< handfourfingers[4].direction().yaw() * RAD_TO_DEG		//HandFour:69 (deg)
 		<< handfourfingers[4].tipPosition().x			//HandFour:70 (mm)
 		<< handfourfingers[4].tipPosition().y			//HandFour:71 (mm)
 		<< handfourfingers[4].tipPosition().z			//HandFour:72 (mm)
 		<< handfourfingers[4].tipVelocity().x			//HandFour:73 (mm/s)
 		<< handfourfingers[4].tipVelocity().y			//HandFour:74 (mm/s)
 		<< handfourfingers[4].tipVelocity().z			//HandFour:75 (mm/s)
-		<< osc::EndMessage
-		<< osc::EndBundle;  
-    transmitSocket.Send( p.Data(), p.Size() );
-}
-
-// 'int argc, char* argv[]' added to 'int main' for oscpack
-int main(int argc, char* argv[]) {
-
-  //Program title and OSC configuration
-  std::cout << "leapOSC v0.2 by Morphic Creative" << std::endl;
-  std::cout << "" << std::endl;
-  std::cout << "OSC output to: " << ADDRESS << ", port: " << PORT << ", output buffer size: " << OUTPUT_BUFFER_SIZE << std::endl;
-  std::cout << "" << std::endl;
-
-  // Create a sample listener and controller
-  SampleListener listener;
-  Controller controller;
-
-  // Have the sample listener receive events from the controller
-  controller.addListener(listener);
-
-  // Keep this process running until Enter is pressed
-  std::cout << "Press Enter to quit..." << std::endl;
-  std::cin.get();
-
-  // Remove the sample listener when done
-  controller.removeListener(listener);
-
-  return 0;
-}
