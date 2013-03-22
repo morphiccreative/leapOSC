@@ -11,3 +11,11 @@ Currently works with up to 4 hands and 20 fingers(5 fingers per hand). Outputs 3
 OSC packet output is at least 120FPS. Channel names have been optimised to fit all data into a 8KB packet.
 
 Gesture support not yet implemented, but will be on the next build.
+
+
+
+TO DO:
+Add gesture support
+Add configuration file for settings
+Add Leap Motion data viewer - CLI or GUI based
+
