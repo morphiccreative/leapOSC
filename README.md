@@ -15,7 +15,5 @@ Gesture support not yet implemented, but will be on the next build.
 
 
 TO DO:
-Add gesture support
-Add configuration file for settings
-Add Leap Motion data viewer - CLI or GUI based
+Add gesture support, configuration file for settings, Leap Motion data viewer - CLI or GUI based.
 
