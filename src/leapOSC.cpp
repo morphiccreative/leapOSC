@@ -1,4 +1,4 @@
-// leapOSC v0.2 by Morphic Creative
+// leapOSC v0.4 by Morphic Creative 21-03-2013
 
 //Includes and namespace for Leap
 #include <iostream>
@@ -10,7 +10,7 @@ using namespace Leap;
 #include "include/UdpSocket.h"
 #define ADDRESS "127.0.0.1"
 #define PORT 7000
-#define OUTPUT_BUFFER_SIZE 2048
+#define OUTPUT_BUFFER_SIZE 8192
 using namespace std;
 
 class SampleListener : public Listener {
@@ -23,15 +23,19 @@ class SampleListener : public Listener {
 };
 
 void SampleListener::onInit(const Controller& controller) {
-  std::cout << "Device Initialized" << std::endl;
+  std::cout << "Initialized" << std::endl;
 }
 
 void SampleListener::onConnect(const Controller& controller) {
-  std::cout << "Device Connected" << std::endl;
+  std::cout << "Connected" << std::endl;
+  controller.enableGesture(Gesture::TYPE_CIRCLE);
+  controller.enableGesture(Gesture::TYPE_KEY_TAP);
+  controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
+  controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
 void SampleListener::onDisconnect(const Controller& controller) {
-  std::cout << "Device Disconnected" << std::endl;
+  std::cout << "Disconnected" << std::endl;
 }
 
 void SampleListener::onExit(const Controller& controller) {
@@ -39,7 +43,6 @@ void SampleListener::onExit(const Controller& controller) {
 }
 
 void SampleListener::onFrame(const Controller& controller) {
-
   // Get the most recent frame
   const Frame frame = controller.frame();
 
@@ -87,335 +90,960 @@ void SampleListener::onFrame(const Controller& controller) {
   const Vector handfournormalvector = handfour.palmNormal();
   const Vector handfourdirection = handfour.direction();
 
+  // Clear contents of CLI window
+  // std::system("cls");
+
   // Output Leap data via OSC
     UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
     char buffer[OUTPUT_BUFFER_SIZE];
     osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
     p << osc::BeginBundleImmediate
-        << osc::BeginMessage( "/FrameInfo:" )
-		<< frame.id()									//FrameInfo:1
-		<< frame.timestamp()							//FrameInfo:2
-		<< frame.hands().count()						//FrameInfo:3
-		<< frame.fingers().count()						//FrameInfo:4
-		<< frame.tools().count()						//FrameInfo:5
+  // Frame Data
+        << osc::BeginMessage( "/ID:" )
+		<< frame.id()
 		<< osc::EndMessage
-        << osc::BeginMessage( "/HandOne:" )
-		<< handonefingers.count()						//HandOne:1
-		<< handone.palmPosition().x						//HandOne:2 (mm)
-		<< handone.palmPosition().y						//HandOne:3 (mm)
-		<< handone.palmPosition().z						//HandOne:4 (mm)
-		<< handone.palmVelocity().x						//HandOne:5 (mm/s)
-		<< handone.palmVelocity().y						//HandOne:6 (mm/s)
-		<< handone.palmVelocity().z						//HandOne:7 (mm/s)
-		<< handonenormalvector.pitch() * RAD_TO_DEG		//HandOne:8 (deg)
-		<< handonenormalvector.roll() * RAD_TO_DEG		//HandOne:9 (deg)
-		<< handonenormalvector.yaw() * RAD_TO_DEG		//HandOne:10 (deg)
-		<< handonedirection.pitch() * RAD_TO_DEG		//HandOne:11 (deg)
-		<< handonedirection.roll() * RAD_TO_DEG			//HandOne:12 (deg)
-		<< handonedirection.yaw() * RAD_TO_DEG			//HandOne:13 (deg)
-		<< handone.sphereCenter().x						//HandOne:14 (mm)
-		<< handone.sphereCenter().y						//HandOne:15 (mm)
-		<< handone.sphereCenter().z						//HandOne:16 (mm)
-		<< handone.sphereRadius()						//HandOne:17 (mm)
-		<< handonefingersavgPos.x						//HandOne:18 (mm)
-		<< handonefingersavgPos.y						//HandOne:19 (mm)
-		<< handonefingersavgPos.z						//HandOne:20 (mm)
-		<< handonefingers[0].length()					//HandOne:21 (mm)
-		<< handonefingers[0].width()					//HandOne:22 (mm)
-		<< handonefingers[0].direction().pitch() * RAD_TO_DEG		//HandOne:23 (deg)
-		<< handonefingers[0].direction().roll()	* RAD_TO_DEG		//HandOne:24 (deg)
-		<< handonefingers[0].direction().yaw() * RAD_TO_DEG			//HandOne:25 (deg)
-		<< handonefingers[0].tipPosition().x			//HandOne:26 (mm)
-		<< handonefingers[0].tipPosition().y			//HandOne:27 (mm)
-		<< handonefingers[0].tipPosition().z			//HandOne:28 (mm)
-		<< handonefingers[0].tipVelocity().x			//HandOne:29 (mm/s)
-		<< handonefingers[0].tipVelocity().y			//HandOne:30 (mm/s)
-		<< handonefingers[0].tipVelocity().z			//HandOne:31 (mm/s)
-		<< handonefingers[1].length()					//HandOne:32 (mm)
-		<< handonefingers[1].width()					//HandOne:33 (mm)
-		<< handonefingers[1].direction().pitch() * RAD_TO_DEG		//HandOne:34 (deg)
-		<< handonefingers[1].direction().roll()	* RAD_TO_DEG		//HandOne:35 (deg)
-		<< handonefingers[1].direction().yaw() * RAD_TO_DEG			//HandOne:36 (deg)
-		<< handonefingers[1].tipPosition().x			//HandOne:37 (mm)
-		<< handonefingers[1].tipPosition().y			//HandOne:38 (mm)
-		<< handonefingers[1].tipPosition().z			//HandOne:39 (mm)
-		<< handonefingers[1].tipVelocity().x			//HandOne:40 (mm/s)
-		<< handonefingers[1].tipVelocity().y			//HandOne:41 (mm/s)
-		<< handonefingers[1].tipVelocity().z			//HandOne:42 (mm/s)
-		<< handonefingers[2].length()					//HandOne:43 (mm)
-		<< handonefingers[2].width()					//HandOne:44 (mm)
-		<< handonefingers[2].direction().pitch() * RAD_TO_DEG		//HandOne:45 (deg)
-		<< handonefingers[2].direction().roll()	* RAD_TO_DEG		//HandOne:46 (deg)
-		<< handonefingers[2].direction().yaw() * RAD_TO_DEG			//HandOne:47 (deg)
-		<< handonefingers[2].tipPosition().x			//HandOne:48 (mm)
-		<< handonefingers[2].tipPosition().y			//HandOne:49 (mm)
-		<< handonefingers[2].tipPosition().z			//HandOne:50 (mm)
-		<< handonefingers[2].tipVelocity().x			//HandOne:51 (mm/s)
-		<< handonefingers[2].tipVelocity().y			//HandOne:52 (mm/s)
-		<< handonefingers[2].tipVelocity().z			//HandOne:53 (mm/s)
-		<< handonefingers[3].length()					//HandOne:54 (mm)
-		<< handonefingers[3].width()					//HandOne:55 (mm)
-		<< handonefingers[3].direction().pitch() * RAD_TO_DEG		//HandOne:56 (deg)
-		<< handonefingers[3].direction().roll()	* RAD_TO_DEG		//HandOne:57 (deg)
-		<< handonefingers[3].direction().yaw() * RAD_TO_DEG			//HandOne:58 (deg)
-		<< handonefingers[3].tipPosition().x			//HandOne:59 (mm)
-		<< handonefingers[3].tipPosition().y			//HandOne:60 (mm)
-		<< handonefingers[3].tipPosition().z			//HandOne:61 (mm)
-		<< handonefingers[3].tipVelocity().x			//HandOne:62 (mm/s)
-		<< handonefingers[3].tipVelocity().y			//HandOne:63 (mm/s)
-		<< handonefingers[3].tipVelocity().z			//HandOne:64 (mm/s)
-		<< handonefingers[4].length()					//HandOne:65 (mm)
-		<< handonefingers[4].width()					//HandOne:66 (mm)
-		<< handonefingers[4].direction().pitch() * RAD_TO_DEG		//HandOne:67 (deg)
-		<< handonefingers[4].direction().roll()	* RAD_TO_DEG		//HandOne:68 (deg)
-		<< handonefingers[4].direction().yaw() * RAD_TO_DEG			//HandOne:69 (deg)
-		<< handonefingers[4].tipPosition().x			//HandOne:70 (mm)
-		<< handonefingers[4].tipPosition().y			//HandOne:71 (mm)
-		<< handonefingers[4].tipPosition().z			//HandOne:72 (mm)
-		<< handonefingers[4].tipVelocity().x			//HandOne:73 (mm/s)
-		<< handonefingers[4].tipVelocity().y			//HandOne:74 (mm/s)
-		<< handonefingers[4].tipVelocity().z			//HandOne:75 (mm/s)
+        << osc::BeginMessage( "/TS:" )
+		<< frame.timestamp()
 		<< osc::EndMessage
-        << osc::BeginMessage( "/HandTwo:" )
-		<< handtwofingers.count()						//HandTwo:1
-		<< handtwo.palmPosition().x						//HandTwo:2 (mm)
-		<< handtwo.palmPosition().y						//HandTwo:3 (mm)
-		<< handtwo.palmPosition().z						//HandTwo:4 (mm)
-		<< handtwo.palmVelocity().x						//HandTwo:5 (mm/s)
-		<< handtwo.palmVelocity().y						//HandTwo:6 (mm/s)
-		<< handtwo.palmVelocity().z						//HandTwo:7 (mm/s)
-		<< handtwonormalvector.pitch() * RAD_TO_DEG		//HandTwo:8 (deg)
-		<< handtwonormalvector.roll() * RAD_TO_DEG		//HandTwo:9 (deg)
-		<< handtwonormalvector.yaw() * RAD_TO_DEG		//HandTwo:10 (deg)
-		<< handtwodirection.pitch() * RAD_TO_DEG		//HandTwo:11 (deg)
-		<< handtwodirection.roll() * RAD_TO_DEG			//HandTwo:12 (deg)
-		<< handtwodirection.yaw() * RAD_TO_DEG			//HandTwo:13 (deg)
-		<< handtwo.sphereCenter().x						//HandTwo:14 (mm)
-		<< handtwo.sphereCenter().y						//HandTwo:15 (mm)
-		<< handtwo.sphereCenter().z						//HandTwo:16 (mm)
-		<< handtwo.sphereRadius()						//HandTwo:17 (mm)
-		<< handtwofingersavgPos.x						//HandTwo:18 (mm)
-		<< handtwofingersavgPos.y						//HandTwo:19 (mm)
-		<< handtwofingersavgPos.z						//HandTwo:20 (mm)
-		<< handtwofingers[0].length()					//HandTwo:21 (mm)
-		<< handtwofingers[0].width()					//HandTwo:22 (mm)
-		<< handtwofingers[0].direction().pitch() * RAD_TO_DEG		//HandTwo:23 (deg)
-		<< handtwofingers[0].direction().roll()	* RAD_TO_DEG		//HandTwo:24 (deg)
-		<< handtwofingers[0].direction().yaw() * RAD_TO_DEG			//HandTwo:25 (deg)
-		<< handtwofingers[0].tipPosition().x			//HandTwo:26 (mm)
-		<< handtwofingers[0].tipPosition().y			//HandTwo:27 (mm)
-		<< handtwofingers[0].tipPosition().z			//HandTwo:28 (mm)
-		<< handtwofingers[0].tipVelocity().x			//HandTwo:29 (mm/s)
-		<< handtwofingers[0].tipVelocity().y			//HandTwo:30 (mm/s)
-		<< handtwofingers[0].tipVelocity().z			//HandTwo:31 (mm/s)
-		<< handtwofingers[1].length()					//HandTwo:32 (mm)
-		<< handtwofingers[1].width()					//HandTwo:33 (mm)
-		<< handtwofingers[1].direction().pitch() * RAD_TO_DEG		//HandTwo:34 (deg)
-		<< handtwofingers[1].direction().roll()	* RAD_TO_DEG		//HandTwo:35 (deg)
-		<< handtwofingers[1].direction().yaw() * RAD_TO_DEG			//HandTwo:36 (deg)
-		<< handtwofingers[1].tipPosition().x			//HandTwo:37 (mm)
-		<< handtwofingers[1].tipPosition().y			//HandTwo:38 (mm)
-		<< handtwofingers[1].tipPosition().z			//HandTwo:39 (mm)
-		<< handtwofingers[1].tipVelocity().x			//HandTwo:40 (mm/s)
-		<< handtwofingers[1].tipVelocity().y			//HandTwo:41 (mm/s)
-		<< handtwofingers[1].tipVelocity().z			//HandTwo:42 (mm/s)
-		<< handtwofingers[2].length()					//HandTwo:43 (mm)
-		<< handtwofingers[2].width()					//HandTwo:44 (mm)
-		<< handtwofingers[2].direction().pitch() * RAD_TO_DEG		//HandTwo:45 (deg)
-		<< handtwofingers[2].direction().roll()	* RAD_TO_DEG		//HandTwo:46 (deg)
-		<< handtwofingers[2].direction().yaw() * RAD_TO_DEG			//HandTwo:47 (deg)
-		<< handtwofingers[2].tipPosition().x			//HandTwo:48 (mm)
-		<< handtwofingers[2].tipPosition().y			//HandTwo:49 (mm)
-		<< handtwofingers[2].tipPosition().z			//HandTwo:50 (mm)
-		<< handtwofingers[2].tipVelocity().x			//HandTwo:51 (mm/s)
-		<< handtwofingers[2].tipVelocity().y			//HandTwo:52 (mm/s)
-		<< handtwofingers[2].tipVelocity().z			//HandTwo:53 (mm/s)
-		<< handtwofingers[3].length()					//HandTwo:54 (mm)
-		<< handtwofingers[3].width()					//HandTwo:55 (mm)
-		<< handtwofingers[3].direction().pitch() * RAD_TO_DEG		//HandTwo:56 (deg)
-		<< handtwofingers[3].direction().roll()	* RAD_TO_DEG		//HandTwo:57 (deg)
-		<< handtwofingers[3].direction().yaw() * RAD_TO_DEG			//HandTwo:58 (deg)
-		<< handtwofingers[3].tipPosition().x			//HandTwo:59 (mm)
-		<< handtwofingers[3].tipPosition().y			//HandTwo:60 (mm)
-		<< handtwofingers[3].tipPosition().z			//HandTwo:61 (mm)
-		<< handtwofingers[3].tipVelocity().x			//HandTwo:62 (mm/s)
-		<< handtwofingers[3].tipVelocity().y			//HandTwo:63 (mm/s)
-		<< handtwofingers[3].tipVelocity().z			//HandTwo:64 (mm/s)
-		<< handtwofingers[4].length()					//HandTwo:65 (mm)
-		<< handtwofingers[4].width()					//HandTwo:66 (mm)
-		<< handtwofingers[4].direction().pitch() * RAD_TO_DEG		//HandTwo:67 (deg)
-		<< handtwofingers[4].direction().roll()	* RAD_TO_DEG		//HandTwo:68 (deg)
-		<< handtwofingers[4].direction().yaw() * RAD_TO_DEG			//HandTwo:69 (deg)
-		<< handtwofingers[4].tipPosition().x			//HandTwo:70 (mm)
-		<< handtwofingers[4].tipPosition().y			//HandTwo:71 (mm)
-		<< handtwofingers[4].tipPosition().z			//HandTwo:72 (mm)
-		<< handtwofingers[4].tipVelocity().x			//HandTwo:73 (mm/s)
-		<< handtwofingers[4].tipVelocity().y			//HandTwo:74 (mm/s)
-		<< handtwofingers[4].tipVelocity().z			//HandTwo:75 (mm/s)
+        << osc::BeginMessage( "/HC:" )
+		<< frame.hands().count()
 		<< osc::EndMessage
-        << osc::BeginMessage( "/HandThree:" )
-		<< handthreefingers.count()						//HandThree:1
-		<< handthree.palmPosition().x						//HandThree:2 (mm)
-		<< handthree.palmPosition().y						//HandThree:3 (mm)
-		<< handthree.palmPosition().z						//HandThree:4 (mm)
-		<< handthree.palmVelocity().x						//HandThree:5 (mm/s)
-		<< handthree.palmVelocity().y						//HandThree:6 (mm/s)
-		<< handthree.palmVelocity().z						//HandThree:7 (mm/s)
-		<< handthreenormalvector.pitch() * RAD_TO_DEG		//HandThree:8 (deg)
-		<< handthreenormalvector.roll() * RAD_TO_DEG		//HandThree:9 (deg)
-		<< handthreenormalvector.yaw() * RAD_TO_DEG		//HandThree:10 (deg)
-		<< handthreedirection.pitch() * RAD_TO_DEG		//HandThree:11 (deg)
-		<< handthreedirection.roll() * RAD_TO_DEG			//HandThree:12 (deg)
-		<< handthreedirection.yaw() * RAD_TO_DEG			//HandThree:13 (deg)
-		<< handthree.sphereCenter().x						//HandThree:14 (mm)
-		<< handthree.sphereCenter().y						//HandThree:15 (mm)
-		<< handthree.sphereCenter().z						//HandThree:16 (mm)
-		<< handthree.sphereRadius()						//HandThree:17 (mm)
-		<< handthreefingersavgPos.x						//HandThree:18 (mm)
-		<< handthreefingersavgPos.y						//HandThree:19 (mm)
-		<< handthreefingersavgPos.z						//HandThree:20 (mm)
-		<< handthreefingers[0].length()					//HandThree:21 (mm)
-		<< handthreefingers[0].width()					//HandThree:22 (mm)
-		<< handthreefingers[0].direction().pitch() * RAD_TO_DEG		//HandThree:23 (deg)
-		<< handthreefingers[0].direction().roll()	* RAD_TO_DEG		//HandThree:24 (deg)
-		<< handthreefingers[0].direction().yaw() * RAD_TO_DEG			//HandThree:25 (deg)
-		<< handthreefingers[0].tipPosition().x			//HandThree:26 (mm)
-		<< handthreefingers[0].tipPosition().y			//HandThree:27 (mm)
-		<< handthreefingers[0].tipPosition().z			//HandThree:28 (mm)
-		<< handthreefingers[0].tipVelocity().x			//HandThree:29 (mm/s)
-		<< handthreefingers[0].tipVelocity().y			//HandThree:30 (mm/s)
-		<< handthreefingers[0].tipVelocity().z			//HandThree:31 (mm/s)
-		<< handthreefingers[1].length()					//HandThree:32 (mm)
-		<< handthreefingers[1].width()					//HandThree:33 (mm)
-		<< handthreefingers[1].direction().pitch() * RAD_TO_DEG		//HandThree:34 (deg)
-		<< handthreefingers[1].direction().roll()	* RAD_TO_DEG		//HandThree:35 (deg)
-		<< handthreefingers[1].direction().yaw() * RAD_TO_DEG			//HandThree:36 (deg)
-		<< handthreefingers[1].tipPosition().x			//HandThree:37 (mm)
-		<< handthreefingers[1].tipPosition().y			//HandThree:38 (mm)
-		<< handthreefingers[1].tipPosition().z			//HandThree:39 (mm)
-		<< handthreefingers[1].tipVelocity().x			//HandThree:40 (mm/s)
-		<< handthreefingers[1].tipVelocity().y			//HandThree:41 (mm/s)
-		<< handthreefingers[1].tipVelocity().z			//HandThree:42 (mm/s)
-		<< handthreefingers[2].length()					//HandThree:43 (mm)
-		<< handthreefingers[2].width()					//HandThree:44 (mm)
-		<< handthreefingers[2].direction().pitch() * RAD_TO_DEG		//HandThree:45 (deg)
-		<< handthreefingers[2].direction().roll()	* RAD_TO_DEG		//HandThree:46 (deg)
-		<< handthreefingers[2].direction().yaw() * RAD_TO_DEG			//HandThree:47 (deg)
-		<< handthreefingers[2].tipPosition().x			//HandThree:48 (mm)
-		<< handthreefingers[2].tipPosition().y			//HandThree:49 (mm)
-		<< handthreefingers[2].tipPosition().z			//HandThree:50 (mm)
-		<< handthreefingers[2].tipVelocity().x			//HandThree:51 (mm/s)
-		<< handthreefingers[2].tipVelocity().y			//HandThree:52 (mm/s)
-		<< handthreefingers[2].tipVelocity().z			//HandThree:53 (mm/s)
-		<< handthreefingers[3].length()					//HandThree:54 (mm)
-		<< handthreefingers[3].width()					//HandThree:55 (mm)
-		<< handthreefingers[3].direction().pitch() * RAD_TO_DEG		//HandThree:56 (deg)
-		<< handthreefingers[3].direction().roll()	* RAD_TO_DEG		//HandThree:57 (deg)
-		<< handthreefingers[3].direction().yaw() * RAD_TO_DEG			//HandThree:58 (deg)
-		<< handthreefingers[3].tipPosition().x			//HandThree:59 (mm)
-		<< handthreefingers[3].tipPosition().y			//HandThree:60 (mm)
-		<< handthreefingers[3].tipPosition().z			//HandThree:61 (mm)
-		<< handthreefingers[3].tipVelocity().x			//HandThree:62 (mm/s)
-		<< handthreefingers[3].tipVelocity().y			//HandThree:63 (mm/s)
-		<< handthreefingers[3].tipVelocity().z			//HandThree:64 (mm/s)
-		<< handthreefingers[4].length()					//HandThree:65 (mm)
-		<< handthreefingers[4].width()					//HandThree:66 (mm)
-		<< handthreefingers[4].direction().pitch() * RAD_TO_DEG		//HandThree:67 (deg)
-		<< handthreefingers[4].direction().roll()	* RAD_TO_DEG		//HandThree:68 (deg)
-		<< handthreefingers[4].direction().yaw() * RAD_TO_DEG			//HandThree:69 (deg)
-		<< handthreefingers[4].tipPosition().x			//HandThree:70 (mm)
-		<< handthreefingers[4].tipPosition().y			//HandThree:71 (mm)
-		<< handthreefingers[4].tipPosition().z			//HandThree:72 (mm)
-		<< handthreefingers[4].tipVelocity().x			//HandThree:73 (mm/s)
-		<< handthreefingers[4].tipVelocity().y			//HandThree:74 (mm/s)
-		<< handthreefingers[4].tipVelocity().z			//HandThree:75 (mm/s)
+        << osc::BeginMessage( "/FC:" )
+		<< frame.fingers().count()
 		<< osc::EndMessage
-        << osc::BeginMessage( "/HandFour:" )
-		<< handfourfingers.count()						//HandFour:1
-		<< handfour.palmPosition().x						//HandFour:2 (mm)
-		<< handfour.palmPosition().y						//HandFour:3 (mm)
-		<< handfour.palmPosition().z						//HandFour:4 (mm)
-		<< handfour.palmVelocity().x						//HandFour:5 (mm/s)
-		<< handfour.palmVelocity().y						//HandFour:6 (mm/s)
-		<< handfour.palmVelocity().z						//HandFour:7 (mm/s)
-		<< handfournormalvector.pitch() * RAD_TO_DEG		//HandFour:8 (deg)
-		<< handfournormalvector.roll() * RAD_TO_DEG		//HandFour:9 (deg)
-		<< handfournormalvector.yaw() * RAD_TO_DEG		//HandFour:10 (deg)
-		<< handfourdirection.pitch() * RAD_TO_DEG		//HandFour:11 (deg)
-		<< handfourdirection.roll() * RAD_TO_DEG			//HandFour:12 (deg)
-		<< handfourdirection.yaw() * RAD_TO_DEG			//HandFour:13 (deg)
-		<< handfour.sphereCenter().x						//HandFour:14 (mm)
-		<< handfour.sphereCenter().y						//HandFour:15 (mm)
-		<< handfour.sphereCenter().z						//HandFour:16 (mm)
-		<< handfour.sphereRadius()						//HandFour:17 (mm)
-		<< handfourfingersavgPos.x						//HandFour:18 (mm)
-		<< handfourfingersavgPos.y						//HandFour:19 (mm)
-		<< handfourfingersavgPos.z						//HandFour:20 (mm)
-		<< handfourfingers[0].length()					//HandFour:21 (mm)
-		<< handfourfingers[0].width()					//HandFour:22 (mm)
-		<< handfourfingers[0].direction().pitch() * RAD_TO_DEG		//HandFour:23 (deg)
-		<< handfourfingers[0].direction().roll()	* RAD_TO_DEG		//HandFour:24 (deg)
-		<< handfourfingers[0].direction().yaw() * RAD_TO_DEG			//HandFour:25 (deg)
-		<< handfourfingers[0].tipPosition().x			//HandFour:26 (mm)
-		<< handfourfingers[0].tipPosition().y			//HandFour:27 (mm)
-		<< handfourfingers[0].tipPosition().z			//HandFour:28 (mm)
-		<< handfourfingers[0].tipVelocity().x			//HandFour:29 (mm/s)
-		<< handfourfingers[0].tipVelocity().y			//HandFour:30 (mm/s)
-		<< handfourfingers[0].tipVelocity().z			//HandFour:31 (mm/s)
-		<< handfourfingers[1].length()					//HandFour:32 (mm)
-		<< handfourfingers[1].width()					//HandFour:33 (mm)
-		<< handfourfingers[1].direction().pitch() * RAD_TO_DEG		//HandFour:34 (deg)
-		<< handfourfingers[1].direction().roll()	* RAD_TO_DEG		//HandFour:35 (deg)
-		<< handfourfingers[1].direction().yaw() * RAD_TO_DEG			//HandFour:36 (deg)
-		<< handfourfingers[1].tipPosition().x			//HandFour:37 (mm)
-		<< handfourfingers[1].tipPosition().y			//HandFour:38 (mm)
-		<< handfourfingers[1].tipPosition().z			//HandFour:39 (mm)
-		<< handfourfingers[1].tipVelocity().x			//HandFour:40 (mm/s)
-		<< handfourfingers[1].tipVelocity().y			//HandFour:41 (mm/s)
-		<< handfourfingers[1].tipVelocity().z			//HandFour:42 (mm/s)
-		<< handfourfingers[2].length()					//HandFour:43 (mm)
-		<< handfourfingers[2].width()					//HandFour:44 (mm)
-		<< handfourfingers[2].direction().pitch() * RAD_TO_DEG		//HandFour:45 (deg)
-		<< handfourfingers[2].direction().roll()	* RAD_TO_DEG		//HandFour:46 (deg)
-		<< handfourfingers[2].direction().yaw() * RAD_TO_DEG			//HandFour:47 (deg)
-		<< handfourfingers[2].tipPosition().x			//HandFour:48 (mm)
-		<< handfourfingers[2].tipPosition().y			//HandFour:49 (mm)
-		<< handfourfingers[2].tipPosition().z			//HandFour:50 (mm)
-		<< handfourfingers[2].tipVelocity().x			//HandFour:51 (mm/s)
-		<< handfourfingers[2].tipVelocity().y			//HandFour:52 (mm/s)
-		<< handfourfingers[2].tipVelocity().z			//HandFour:53 (mm/s)
-		<< handfourfingers[3].length()					//HandFour:54 (mm)
-		<< handfourfingers[3].width()					//HandFour:55 (mm)
-		<< handfourfingers[3].direction().pitch() * RAD_TO_DEG		//HandFour:56 (deg)
-		<< handfourfingers[3].direction().roll()	* RAD_TO_DEG		//HandFour:57 (deg)
-		<< handfourfingers[3].direction().yaw() * RAD_TO_DEG			//HandFour:58 (deg)
-		<< handfourfingers[3].tipPosition().x			//HandFour:59 (mm)
-		<< handfourfingers[3].tipPosition().y			//HandFour:60 (mm)
-		<< handfourfingers[3].tipPosition().z			//HandFour:61 (mm)
-		<< handfourfingers[3].tipVelocity().x			//HandFour:62 (mm/s)
-		<< handfourfingers[3].tipVelocity().y			//HandFour:63 (mm/s)
-		<< handfourfingers[3].tipVelocity().z			//HandFour:64 (mm/s)
-		<< handfourfingers[4].length()					//HandFour:65 (mm)
-		<< handfourfingers[4].width()					//HandFour:66 (mm)
-		<< handfourfingers[4].direction().pitch() * RAD_TO_DEG		//HandFour:67 (deg)
-		<< handfourfingers[4].direction().roll()	* RAD_TO_DEG		//HandFour:68 (deg)
-		<< handfourfingers[4].direction().yaw() * RAD_TO_DEG			//HandFour:69 (deg)
-		<< handfourfingers[4].tipPosition().x			//HandFour:70 (mm)
-		<< handfourfingers[4].tipPosition().y			//HandFour:71 (mm)
-		<< handfourfingers[4].tipPosition().z			//HandFour:72 (mm)
-		<< handfourfingers[4].tipVelocity().x			//HandFour:73 (mm/s)
-		<< handfourfingers[4].tipVelocity().y			//HandFour:74 (mm/s)
-		<< handfourfingers[4].tipVelocity().z			//HandFour:75 (mm/s)
+        << osc::BeginMessage( "/TC:" )
+		<< frame.tools().count()
+		<< osc::EndMessage
+  // Hand One Data
+        << osc::BeginMessage( "/H1FC:" )
+		<< handonefingers.count()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PPX:" )
+		<< handone.palmPosition().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PPY:" )
+		<< handone.palmPosition().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PPZ:" )
+		<< handone.palmPosition().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PVX:" )
+		<< handone.palmVelocity().x						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PVY:" )
+		<< handone.palmVelocity().y						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PVZ:" )
+		<< handone.palmVelocity().z						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1NVP:" )
+		<< handonenormalvector.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1NVR:" )
+		<< handonenormalvector.roll() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1NVY:" )
+		<< handonenormalvector.yaw() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1DP:" )
+		<< handonedirection.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1DR:" )
+		<< handonedirection.roll() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1DY:" )
+		<< handonedirection.yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1SCX:" )
+		<< handone.sphereCenter().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1SCY:" )
+		<< handone.sphereCenter().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1SCZ:" )
+		<< handone.sphereCenter().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1SR:" )
+		<< handone.sphereRadius()						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1FAPX:" )
+		<< handonefingersavgPos.x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1FAPY:" )
+		<< handonefingersavgPos.y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1FAPZ:" )
+		<< handonefingersavgPos.z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0L:" )
+		<< handonefingers[0].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0W:" )
+		<< handonefingers[0].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0DP:" )
+		<< handonefingers[0].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0DR:" )
+		<< handonefingers[0].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0DY:" )
+		<< handonefingers[0].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TPX:" )
+		<< handonefingers[0].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TPY:" )
+		<< handonefingers[0].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TPZ:" )
+		<< handonefingers[0].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TVX:" )
+		<< handonefingers[0].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TVY:" )
+		<< handonefingers[0].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F0TVZ:" )
+		<< handonefingers[0].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H1F1L:" )
+		<< handonefingers[1].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1W:" )
+		<< handonefingers[1].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1DP:" )
+		<< handonefingers[1].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1DR:" )
+		<< handonefingers[1].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1DY:" )
+		<< handonefingers[1].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TPX:" )
+		<< handonefingers[1].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TPY:" )
+		<< handonefingers[1].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TPZ:" )
+		<< handonefingers[1].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TVX:" )
+		<< handonefingers[1].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TVY:" )
+		<< handonefingers[1].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F1TVZ:" )
+		<< handonefingers[1].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H1F2L:" )
+		<< handonefingers[2].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2W:" )
+		<< handonefingers[2].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2DP:" )
+		<< handonefingers[2].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2DR:" )
+		<< handonefingers[2].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2DY:" )
+		<< handonefingers[2].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TPX:" )
+		<< handonefingers[2].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TPY:" )
+		<< handonefingers[2].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TPZ:" )
+		<< handonefingers[2].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TVX:" )
+		<< handonefingers[2].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TVY:" )
+		<< handonefingers[2].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F2TVZ:" )
+		<< handonefingers[2].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H1F3L:" )
+		<< handonefingers[3].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3W:" )
+		<< handonefingers[3].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3DP:" )
+		<< handonefingers[3].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3DR:" )
+		<< handonefingers[3].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3DY:" )
+		<< handonefingers[3].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TPX:" )
+		<< handonefingers[3].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TPY:" )
+		<< handonefingers[3].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TPZ:" )
+		<< handonefingers[3].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TVX:" )
+		<< handonefingers[3].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TVY:" )
+		<< handonefingers[3].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F3TVZ:" )
+		<< handonefingers[3].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H1F4L:" )
+		<< handonefingers[4].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4W:" )
+		<< handonefingers[4].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4DP:" )
+		<< handonefingers[4].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4DR:" )
+		<< handonefingers[4].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4DY:" )
+		<< handonefingers[4].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TPX:" )
+		<< handonefingers[4].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TPY:" )
+		<< handonefingers[4].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TPZ:" )
+		<< handonefingers[4].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TVX:" )
+		<< handonefingers[4].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TVY:" )
+		<< handonefingers[4].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H1F4TVZ:" )
+		<< handonefingers[4].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+  // Hand Two Data
+        << osc::BeginMessage( "/H2FC:" )
+		<< handtwofingers.count()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PPX:" )
+		<< handtwo.palmPosition().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PPY:" )
+		<< handtwo.palmPosition().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PPZ:" )
+		<< handtwo.palmPosition().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PVX:" )
+		<< handtwo.palmVelocity().x						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PVY:" )
+		<< handtwo.palmVelocity().y						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2PVZ:" )
+		<< handtwo.palmVelocity().z						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2NVP:" )
+		<< handtwonormalvector.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2NVR:" )
+		<< handtwonormalvector.roll() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2NVY:" )
+		<< handtwonormalvector.yaw() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2DP:" )
+		<< handtwodirection.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2DR:" )
+		<< handtwodirection.roll() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2DY:" )
+		<< handtwodirection.yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2SCX:" )
+		<< handtwo.sphereCenter().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2SCY:" )
+		<< handtwo.sphereCenter().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2SCZ:" )
+		<< handtwo.sphereCenter().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2SR:" )
+		<< handtwo.sphereRadius()						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2FAPX:" )
+		<< handtwofingersavgPos.x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2FAPY:" )
+		<< handtwofingersavgPos.y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2FAPZ:" )
+		<< handtwofingersavgPos.z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0L:" )
+		<< handtwofingers[0].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0W:" )
+		<< handtwofingers[0].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0DP:" )
+		<< handtwofingers[0].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0DR:" )
+		<< handtwofingers[0].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0DY:" )
+		<< handtwofingers[0].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TPX:" )
+		<< handtwofingers[0].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TPY:" )
+		<< handtwofingers[0].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TPZ:" )
+		<< handtwofingers[0].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TVX:" )
+		<< handtwofingers[0].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TVY:" )
+		<< handtwofingers[0].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F0TVZ:" )
+		<< handtwofingers[0].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H2F1L:" )
+		<< handtwofingers[1].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1W:" )
+		<< handtwofingers[1].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1DP:" )
+		<< handtwofingers[1].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1DR:" )
+		<< handtwofingers[1].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1DY:" )
+		<< handtwofingers[1].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TPX:" )
+		<< handtwofingers[1].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TPY:" )
+		<< handtwofingers[1].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TPZ:" )
+		<< handtwofingers[1].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TVX:" )
+		<< handtwofingers[1].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TVY:" )
+		<< handtwofingers[1].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F1TVZ:" )
+		<< handtwofingers[1].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H2F2L:" )
+		<< handtwofingers[2].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2W:" )
+		<< handtwofingers[2].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2DP:" )
+		<< handtwofingers[2].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2DR:" )
+		<< handtwofingers[2].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2DY:" )
+		<< handtwofingers[2].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TPX:" )
+		<< handtwofingers[2].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TPY:" )
+		<< handtwofingers[2].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TPZ:" )
+		<< handtwofingers[2].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TVX:" )
+		<< handtwofingers[2].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TVY:" )
+		<< handtwofingers[2].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F2TVZ:" )
+		<< handtwofingers[2].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H2F3L:" )
+		<< handtwofingers[3].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3W:" )
+		<< handtwofingers[3].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3DP:" )
+		<< handtwofingers[3].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3DR:" )
+		<< handtwofingers[3].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3DY:" )
+		<< handtwofingers[3].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TPX:" )
+		<< handtwofingers[3].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TPY:" )
+		<< handtwofingers[3].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TPZ:" )
+		<< handtwofingers[3].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TVX:" )
+		<< handtwofingers[3].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TVY:" )
+		<< handtwofingers[3].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F3TVZ:" )
+		<< handtwofingers[3].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H2F4L:" )
+		<< handtwofingers[4].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4W:" )
+		<< handtwofingers[4].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4DP:" )
+		<< handtwofingers[4].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4DR:" )
+		<< handtwofingers[4].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4DY:" )
+		<< handtwofingers[4].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TPX:" )
+		<< handtwofingers[4].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TPY:" )
+		<< handtwofingers[4].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TPZ:" )
+		<< handtwofingers[4].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TVX:" )
+		<< handtwofingers[4].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TVY:" )
+		<< handtwofingers[4].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H2F4TVZ:" )
+		<< handtwofingers[4].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+  //Hand Three Data
+        << osc::BeginMessage( "/H3FC:" )
+		<< handthreefingers.count()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PPX:" )
+		<< handthree.palmPosition().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PPY:" )
+		<< handthree.palmPosition().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PPZ:" )
+		<< handthree.palmPosition().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PVX:" )
+		<< handthree.palmVelocity().x						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PVY:" )
+		<< handthree.palmVelocity().y						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3PVZ:" )
+		<< handthree.palmVelocity().z						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3NVP:" )
+		<< handthreenormalvector.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3NVR:" )
+		<< handthreenormalvector.roll() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3NVY:" )
+		<< handthreenormalvector.yaw() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3DP:" )
+		<< handthreedirection.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3DR:" )
+		<< handthreedirection.roll() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3DY:" )
+		<< handthreedirection.yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3SCX:" )
+		<< handthree.sphereCenter().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3SCY:" )
+		<< handthree.sphereCenter().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3SCZ:" )
+		<< handthree.sphereCenter().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3SR:" )
+		<< handthree.sphereRadius()						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3FAPX:" )
+		<< handthreefingersavgPos.x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3FAPY:" )
+		<< handthreefingersavgPos.y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3FAPZ:" )
+		<< handthreefingersavgPos.z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0L:" )
+		<< handthreefingers[0].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0W:" )
+		<< handthreefingers[0].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0DP:" )
+		<< handthreefingers[0].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0DR:" )
+		<< handthreefingers[0].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0DY:" )
+		<< handthreefingers[0].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TPX:" )
+		<< handthreefingers[0].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TPY:" )
+		<< handthreefingers[0].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TPZ:" )
+		<< handthreefingers[0].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TVX:" )
+		<< handthreefingers[0].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TVY:" )
+		<< handthreefingers[0].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F0TVZ:" )
+		<< handthreefingers[0].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H3F1L:" )
+		<< handthreefingers[1].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1W:" )
+		<< handthreefingers[1].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1DP:" )
+		<< handthreefingers[1].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1DR:" )
+		<< handthreefingers[1].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1DY:" )
+		<< handthreefingers[1].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TPX:" )
+		<< handthreefingers[1].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TPY:" )
+		<< handthreefingers[1].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TPZ:" )
+		<< handthreefingers[1].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TVX:" )
+		<< handthreefingers[1].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TVY:" )
+		<< handthreefingers[1].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F1TVZ:" )
+		<< handthreefingers[1].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H3F2L:" )
+		<< handthreefingers[2].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2W:" )
+		<< handthreefingers[2].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2DP:" )
+		<< handthreefingers[2].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2DR:" )
+		<< handthreefingers[2].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2DY:" )
+		<< handthreefingers[2].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TPX:" )
+		<< handthreefingers[2].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TPY:" )
+		<< handthreefingers[2].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TPZ:" )
+		<< handthreefingers[2].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TVX:" )
+		<< handthreefingers[2].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TVY:" )
+		<< handthreefingers[2].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F2TVZ:" )
+		<< handthreefingers[2].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H3F3L:" )
+		<< handthreefingers[3].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3W:" )
+		<< handthreefingers[3].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3DP:" )
+		<< handthreefingers[3].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3DR:" )
+		<< handthreefingers[3].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3DY:" )
+		<< handthreefingers[3].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TPX:" )
+		<< handthreefingers[3].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TPY:" )
+		<< handthreefingers[3].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TPZ:" )
+		<< handthreefingers[3].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TVX:" )
+		<< handthreefingers[3].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TVY:" )
+		<< handthreefingers[3].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F3TVZ:" )
+		<< handthreefingers[3].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H3F4L:" )
+		<< handthreefingers[4].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4W:" )
+		<< handthreefingers[4].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4DP:" )
+		<< handthreefingers[4].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4DR:" )
+		<< handthreefingers[4].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4DY:" )
+		<< handthreefingers[4].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TPX:" )
+		<< handthreefingers[4].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TPY:" )
+		<< handthreefingers[4].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TPZ:" )
+		<< handthreefingers[4].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TVX:" )
+		<< handthreefingers[4].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TVY:" )
+		<< handthreefingers[4].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H3F4TVZ:" )
+		<< handthreefingers[4].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+  // Hand Four Data
+        << osc::BeginMessage( "/H4FC:" )
+		<< handfourfingers.count()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PPX:" )
+		<< handfour.palmPosition().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PPY:" )
+		<< handfour.palmPosition().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PPZ:" )
+		<< handfour.palmPosition().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PVX:" )
+		<< handfour.palmVelocity().x						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PVY:" )
+		<< handfour.palmVelocity().y						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4PVZ:" )
+		<< handfour.palmVelocity().z						//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4NVP:" )
+		<< handfournormalvector.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4NVR:" )
+		<< handfournormalvector.roll() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4NVY:" )
+		<< handfournormalvector.yaw() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4DP:" )
+		<< handfourdirection.pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4DR:" )
+		<< handfourdirection.roll() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4DY:" )
+		<< handfourdirection.yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4SCX:" )
+		<< handfour.sphereCenter().x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4SCY:" )
+		<< handfour.sphereCenter().y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4SCZ:" )
+		<< handfour.sphereCenter().z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4SR:" )
+		<< handfour.sphereRadius()						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4FAPX:" )
+		<< handfourfingersavgPos.x						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4FAPY:" )
+		<< handfourfingersavgPos.y						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4FAPZ:" )
+		<< handfourfingersavgPos.z						//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0L:" )
+		<< handfourfingers[0].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0W:" )
+		<< handfourfingers[0].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0DP:" )
+		<< handfourfingers[0].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0DR:" )
+		<< handfourfingers[0].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0DY:" )
+		<< handfourfingers[0].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TPX:" )
+		<< handfourfingers[0].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TPY:" )
+		<< handfourfingers[0].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TPZ:" )
+		<< handfourfingers[0].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TVX:" )
+		<< handfourfingers[0].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TVY:" )
+		<< handfourfingers[0].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F0TVZ:" )
+		<< handfourfingers[0].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H4F1L:" )
+		<< handfourfingers[1].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1W:" )
+		<< handfourfingers[1].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1DP:" )
+		<< handfourfingers[1].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1DR:" )
+		<< handfourfingers[1].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1DY:" )
+		<< handfourfingers[1].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TPX:" )
+		<< handfourfingers[1].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TPY:" )
+		<< handfourfingers[1].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TPZ:" )
+		<< handfourfingers[1].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TVX:" )
+		<< handfourfingers[1].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TVY:" )
+		<< handfourfingers[1].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F1TVZ:" )
+		<< handfourfingers[1].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H4F2L:" )
+		<< handfourfingers[2].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2W:" )
+		<< handfourfingers[2].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2DP:" )
+		<< handfourfingers[2].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2DR:" )
+		<< handfourfingers[2].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2DY:" )
+		<< handfourfingers[2].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TPX:" )
+		<< handfourfingers[2].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TPY:" )
+		<< handfourfingers[2].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TPZ:" )
+		<< handfourfingers[2].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TVX:" )
+		<< handfourfingers[2].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TVY:" )
+		<< handfourfingers[2].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F2TVZ:" )
+		<< handfourfingers[2].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H4F3L:" )
+		<< handfourfingers[3].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3W:" )
+		<< handfourfingers[3].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3DP:" )
+		<< handfourfingers[3].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3DR:" )
+		<< handfourfingers[3].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3DY:" )
+		<< handfourfingers[3].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TPX:" )
+		<< handfourfingers[3].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TPY:" )
+		<< handfourfingers[3].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TPZ:" )
+		<< handfourfingers[3].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TVX:" )
+		<< handfourfingers[3].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TVY:" )
+		<< handfourfingers[3].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F3TVZ:" )
+		<< handfourfingers[3].tipVelocity().z			//(mm/s)
+		<< osc::EndMessage
+
+        << osc::BeginMessage( "/H4F4L:" )
+		<< handfourfingers[4].length()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4W:" )
+		<< handfourfingers[4].width()					//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4DP:" )
+		<< handfourfingers[4].direction().pitch() * RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4DR:" )
+		<< handfourfingers[4].direction().roll()	* RAD_TO_DEG		//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4DY:" )
+		<< handfourfingers[4].direction().yaw() * RAD_TO_DEG			//(deg)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TPX:" )
+		<< handfourfingers[4].tipPosition().x			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TPY:" )
+		<< handfourfingers[4].tipPosition().y			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TPZ:" )
+		<< handfourfingers[4].tipPosition().z			//(mm)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TVX:" )
+		<< handfourfingers[4].tipVelocity().x			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TVY:" )
+		<< handfourfingers[4].tipVelocity().y			//(mm/s)
+		<< osc::EndMessage
+        << osc::BeginMessage( "/H4F4TVZ:" )
+		<< handfourfingers[4].tipVelocity().z			//(mm/s)
 		<< osc::EndMessage
 		<< osc::EndBundle;  
     transmitSocket.Send( p.Data(), p.Size() );
 }
 
-// 'int argc, char* argv[]' added to 'int main' for oscpack
-int main(int argc, char* argv[]) {
+
+  // 'int argc, char* argv[]' added to 'int main' for oscpack
+  int main(int argc, char* argv[]) {
 
   //Program title and OSC configuration
-  std::cout << "leapOSC v0.2 by Morphic Creative" << std::endl;
+  std::cout << "leapOSC v0.4 by Morphic Creative   Build: 21032013" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "OSC output to: " << ADDRESS << ", port: " << PORT << ", output buffer size: " << OUTPUT_BUFFER_SIZE << std::endl;
   std::cout << "" << std::endl;
