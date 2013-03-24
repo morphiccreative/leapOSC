@@ -8,7 +8,7 @@ Compiling from source requires Microsoft Visual Studio 2012 Express, supporting 
 
 Currently works with up to 4 hands and 20 fingers(5 fingers per hand). Outputs 305 data values, 5 for the frame data and 75 per hand.
 
-OSC data output is at least 120FPS. Channel names have been optimised to fit all data into a 8KB packet.
+OSC data output is at least 120FPS. Channel names have been optimised to fit all data into an 8KB packet.
 
 Gesture support not yet implemented, but will be on the next build.
 
