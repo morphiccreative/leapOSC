@@ -1,4 +1,4 @@
-// leapOSC v0.4 by Morphic Creative 21-03-2013
+// leapOSC v0.5 by Morphic Creative 14-06-2013
 
 //Includes and namespace for Leap
 #include <iostream>
@@ -20,6 +20,8 @@ class SampleListener : public Listener {
     virtual void onDisconnect(const Controller&);
     virtual void onExit(const Controller&);
     virtual void onFrame(const Controller&);
+	virtual void onFocusGained(const Controller&);
+    virtual void onFocusLost(const Controller&);
 };
 
 void SampleListener::onInit(const Controller& controller) {
@@ -32,6 +34,7 @@ void SampleListener::onConnect(const Controller& controller) {
   controller.enableGesture(Gesture::TYPE_KEY_TAP);
   controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
   controller.enableGesture(Gesture::TYPE_SWIPE);
+  controller.setPolicyFlags(Controller::POLICY_BACKGROUND_FRAMES);
 }
 
 void SampleListener::onDisconnect(const Controller& controller) {
@@ -90,90 +93,53 @@ void SampleListener::onFrame(const Controller& controller) {
   const Vector handfournormalvector = handfour.palmNormal();
   const Vector handfourdirection = handfour.direction();
 
-  // Clear contents of CLI window
-  // std::system("cls");
-
   // Output Leap data via OSC
     UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
     char buffer[OUTPUT_BUFFER_SIZE];
     osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
     p << osc::BeginBundleImmediate
   // Frame Data
-        << osc::BeginMessage( "/ID:" )
-		<< frame.id()
-		<< osc::EndMessage
-        << osc::BeginMessage( "/TS:" )
-		<< frame.timestamp()
-		<< osc::EndMessage
-        << osc::BeginMessage( "/HC:" )
-		<< frame.hands().count()
-		<< osc::EndMessage
-        << osc::BeginMessage( "/FC:" )
-		<< frame.fingers().count()
-		<< osc::EndMessage
-        << osc::BeginMessage( "/TC:" )
-		<< frame.tools().count()
-		<< osc::EndMessage
+        << osc::BeginMessage( "/ID:" )	<< frame.id()				<< osc::EndMessage
+        << osc::BeginMessage( "/TS:" )	<< frame.timestamp()		<< osc::EndMessage
+        << osc::BeginMessage( "/HC:" )	<< frame.hands().count()	<< osc::EndMessage
+        << osc::BeginMessage( "/FC:" )	<< frame.fingers().count()	<< osc::EndMessage
+        << osc::BeginMessage( "/TC:" )	<< frame.tools().count()	<< osc::EndMessage
   // Hand One Data
-        << osc::BeginMessage( "/H1FC:" )
-		<< handonefingers.count()
+        << osc::BeginMessage( "/H1FC:" )		<< handonefingers.count()		<< osc::EndMessage
+        << osc::BeginMessage( "/H1PPX:" )		<< handone.palmPosition().x		<< osc::EndMessage				//(mm)
+        << osc::BeginMessage( "/H1PPY:" )		<< handone.palmPosition().y		<< osc::EndMessage				//(mm)		
+        << osc::BeginMessage( "/H1PPZ:" )		<< handone.palmPosition().z		<< osc::EndMessage				//(mm)
+        << osc::BeginMessage( "/H1PVX:" )		<< handone.palmVelocity().x						//(mm/s)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PPX:" )
-		<< handone.palmPosition().x						//(mm)
+        << osc::BeginMessage( "/H1PVY:" )		<< handone.palmVelocity().y						//(mm/s)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PPY:" )
-		<< handone.palmPosition().y						//(mm)
+        << osc::BeginMessage( "/H1PVZ:" )		<< handone.palmVelocity().z						//(mm/s)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PPZ:" )
-		<< handone.palmPosition().z						//(mm)
+        << osc::BeginMessage( "/H1NVP:" )		<< handonenormalvector.pitch() * RAD_TO_DEG		//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PVX:" )
-		<< handone.palmVelocity().x						//(mm/s)
+        << osc::BeginMessage( "/H1NVR:" )		<< handonenormalvector.roll() * RAD_TO_DEG		//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PVY:" )
-		<< handone.palmVelocity().y						//(mm/s)
+        << osc::BeginMessage( "/H1NVY:" )		<< handonenormalvector.yaw() * RAD_TO_DEG		//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1PVZ:" )
-		<< handone.palmVelocity().z						//(mm/s)
+        << osc::BeginMessage( "/H1DP:" )		<< handonedirection.pitch() * RAD_TO_DEG		//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1NVP:" )
-		<< handonenormalvector.pitch() * RAD_TO_DEG		//(deg)
+        << osc::BeginMessage( "/H1DR:" )		<< handonedirection.roll() * RAD_TO_DEG			//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1NVR:" )
-		<< handonenormalvector.roll() * RAD_TO_DEG		//(deg)
+        << osc::BeginMessage( "/H1DY:" )		<< handonedirection.yaw() * RAD_TO_DEG			//(deg)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1NVY:" )
-		<< handonenormalvector.yaw() * RAD_TO_DEG		//(deg)
+        << osc::BeginMessage( "/H1SCX:" )		<< handone.sphereCenter().x						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1DP:" )
-		<< handonedirection.pitch() * RAD_TO_DEG		//(deg)
+        << osc::BeginMessage( "/H1SCY:" )		<< handone.sphereCenter().y						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1DR:" )
-		<< handonedirection.roll() * RAD_TO_DEG			//(deg)
+        << osc::BeginMessage( "/H1SCZ:" )		<< handone.sphereCenter().z						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1DY:" )
-		<< handonedirection.yaw() * RAD_TO_DEG			//(deg)
+        << osc::BeginMessage( "/H1SR:" )		<< handone.sphereRadius()						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1SCX:" )
-		<< handone.sphereCenter().x						//(mm)
+        << osc::BeginMessage( "/H1FAPX:" )		<< handonefingersavgPos.x						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1SCY:" )
-		<< handone.sphereCenter().y						//(mm)
+        << osc::BeginMessage( "/H1FAPY:" )		<< handonefingersavgPos.y						//(mm)
 		<< osc::EndMessage
-        << osc::BeginMessage( "/H1SCZ:" )
-		<< handone.sphereCenter().z						//(mm)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/H1SR:" )
-		<< handone.sphereRadius()						//(mm)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/H1FAPX:" )
-		<< handonefingersavgPos.x						//(mm)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/H1FAPY:" )
-		<< handonefingersavgPos.y						//(mm)
-		<< osc::EndMessage
-        << osc::BeginMessage( "/H1FAPZ:" )
-		<< handonefingersavgPos.z						//(mm)
+        << osc::BeginMessage( "/H1FAPZ:" )		<< handonefingersavgPos.z						//(mm)
 		<< osc::EndMessage
         << osc::BeginMessage( "/H1F0L:" )
 		<< handonefingers[0].length()					//(mm)
@@ -1036,14 +1002,187 @@ void SampleListener::onFrame(const Controller& controller) {
 		<< osc::EndMessage
 		<< osc::EndBundle;  
     transmitSocket.Send( p.Data(), p.Size() );
+
+  // Get gestures
+  const GestureList gestures = frame.gestures();
+  for (int g = 0; g < gestures.count(); ++g) {
+    Gesture gesture = gestures[g];
+
+    switch (gesture.type()) {
+      case Gesture::TYPE_CIRCLE:
+      {
+        CircleGesture circle = gesture;
+        std::string clockwiseness;
+
+        if (circle.pointable().direction().angleTo(circle.normal()) <= PI/4) {
+          clockwiseness = "clockwise";
+        } else {
+          clockwiseness = "counterclockwise";
+        }
+
+        // Calculate angle swept since last frame
+        float sweptAngle = 0;
+        if (circle.state() != Gesture::STATE_START) {
+          CircleGesture previousUpdate = CircleGesture(controller.frame(1).gesture(circle.id()));
+          sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * PI;
+        }
+
+// Transmit CircleGesture OSC Data
+	UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
+    char buffer[OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
+    p << osc::BeginBundleImmediate
+        << osc::BeginMessage( "/CircleID:" )
+		<< gesture.id()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/CircleState:" )
+		<< gesture.state()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/CircleProgress:" )
+		<< circle.progress()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/CircleRadius:" )
+		<< circle.radius()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/CircleAngle:" )
+		<< sweptAngle * RAD_TO_DEG
+		<< osc::EndMessage 
+//      << osc::BeginMessage( "/CW:" )
+//		<< clockwiseness
+//		<< osc::EndMessage
+		<< osc::EndBundle;  
+		transmitSocket.Send( p.Data(), p.Size() );
+
+	break;
+      }
+      case Gesture::TYPE_SWIPE:
+      {
+        SwipeGesture swipe = gesture;
+
+// Transmit SwipeGesture OSC Data
+	UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
+    char buffer[OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
+    p << osc::BeginBundleImmediate
+        << osc::BeginMessage( "/SwipeID:" )
+		<< gesture.id()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/SwipeState:" )
+		<< gesture.state()
+		<< osc::EndMessage
+		<< osc::BeginMessage( "/SwipeDirectionX:" )
+		<< swipe.direction().x
+		<< osc::EndMessage
+		<< osc::BeginMessage( "/SwipeDirectionY:" )
+		<< swipe.direction().y
+		<< osc::EndMessage
+		<< osc::BeginMessage( "/SwipeDirectionZ:" )
+		<< swipe.direction().z
+		<< osc::EndMessage
+        << osc::BeginMessage( "/SwipeSpeed:" )
+		<< swipe.speed()
+		<< osc::EndMessage
+		<< osc::EndBundle;  
+    transmitSocket.Send( p.Data(), p.Size() );
+
+        break;
+      }
+      case Gesture::TYPE_KEY_TAP:
+      {
+        KeyTapGesture tap = gesture;
+
+// Transmit KeyTapGesture OSC Data
+	UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
+    char buffer[OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
+    p << osc::BeginBundleImmediate
+        << osc::BeginMessage( "/KeyTapID:" )
+		<< gesture.id()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapState:" )
+		<< gesture.state()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapPositionX:" )
+		<< tap.position().x
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapPositionY:" )
+		<< tap.position().y
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapPositionZ:" )
+		<< tap.position().z
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapDirectionX:" )
+		<< tap.direction().x
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapDirectionY:" )
+		<< tap.direction().y
+		<< osc::EndMessage
+        << osc::BeginMessage( "/KeyTapDirectionZ:" )
+		<< tap.direction().z
+		<< osc::EndMessage
+		<< osc::EndBundle;  
+    transmitSocket.Send( p.Data(), p.Size() );
+
+        break;
+      }
+      case Gesture::TYPE_SCREEN_TAP:
+      {
+        ScreenTapGesture screentap = gesture;
+
+// Transmit ScreenTapGesture OSC Data
+	UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );    
+    char buffer[OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );   
+    p << osc::BeginBundleImmediate
+        << osc::BeginMessage( "/ScreenTapID:" )
+		<< gesture.id()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapState:" )
+		<< gesture.state()
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapPositionX:" )
+		<< screentap.position().x
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapPositionY:" )
+		<< screentap.position().y
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapPositionZ:" )
+		<< screentap.position().z
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapDirectionX:" )
+		<< screentap.direction().x
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapDirectionY:" )
+		<< screentap.direction().y
+		<< osc::EndMessage
+        << osc::BeginMessage( "/ScreenTapDirectionZ:" )
+		<< screentap.direction().z
+		<< osc::EndMessage
+		<< osc::EndBundle;  
+		transmitSocket.Send( p.Data(), p.Size() );
+        break;
+	  
+      }
+  }
+
+  if (!frame.hands().empty() || !gestures.empty()) {
+  }
+}
 }
 
+void SampleListener::onFocusGained(const Controller& controller) {
+//  std::cout << "Focus Gained" << std::endl;
+}
+
+void SampleListener::onFocusLost(const Controller& controller) {
+//  std::cout << "Focus Lost" << std::endl;
+}
 
   // 'int argc, char* argv[]' added to 'int main' for oscpack
   int main(int argc, char* argv[]) {
 
   //Program title and OSC configuration
-  std::cout << "leapOSC v0.4 by Morphic Creative   Build: 21032013" << std::endl;
+  std::cout << "leapOSC v0.5 by Morphic Creative   Build: 14-06-2013" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "OSC output to: " << ADDRESS << ", port: " << PORT << ", output buffer size: " << OUTPUT_BUFFER_SIZE << std::endl;
   std::cout << "" << std::endl;

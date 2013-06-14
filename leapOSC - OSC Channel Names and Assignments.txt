@@ -7,6 +7,38 @@ OSC Name	Leap Motion Data Value			Measurement Unit
 /FC:		frame.fingers().count()
 /TC:		frame.tools().count()
 
+//Gesture Data
+/CircleID:				gesture.id()
+/CircleState:			gesture.state(
+/CircleProgress:		circle.progress()
+/CircleRadius:			circle.radius()
+/CircleAngle:			sweptAngle
+
+/SwipeID:				gesture.id()
+/SwipeState:			gesture.state()
+/SwipeDirectionX:		swipe.direction().x
+/SwipeDirectionY:		swipe.direction().y
+/SwipeDirectionZ:		swipe.direction().z
+/SwipeSpeed:			swipe.speed()
+
+/KeyTapID:				gesture.id()
+/KeyTapState:			gesture.state()
+/KeyTapPositionX:		tap.position().x
+/KeyTapPositionY:		tap.position().y
+/KeyTapPositionZ:		tap.position().z
+/KeyTapDirectionX:		tap.direction().x
+/KeyTapDirectionY:		tap.direction().y
+/KeyTapDirectionZ:		tap.direction().z
+
+/ScreenTapID:			gesture.id()
+/ScreenTapState:		gesture.state()
+/ScreenTapPositionX:	screentap.position().x
+/ScreenTapPositionY:	screentap.position().y
+/ScreenTapPositionZ:	screentap.position().z
+/ScreenTapDirectionX:	screentap.direction().x
+/ScreenTapDirectionY:	screentap.direction().y
+/ScreenTapDirectionZ:	screentap.direction().z
+
 // Hand One Data
 /H1FC:		handonefingers.count()
 /H1PPX:		handone.palmPosition().x		//(mm)
